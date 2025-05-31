@@ -3,6 +3,8 @@ from flask_cors import CORS
 import pandas as pd
 from prophet import Prophet
 from dateutil.relativedelta import relativedelta
+import os
+
 
 app = Flask(__name__)
 CORS(app, origins=[
@@ -40,5 +42,8 @@ def predict_power():
     results = [{'timestamp': row['ds'].isoformat(), 'consumption': row['yhat']} for _, row in forecast.iterrows()]
     return jsonify(results)
 
+
+
 if __name__ == '__main__':
-    app.run()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
