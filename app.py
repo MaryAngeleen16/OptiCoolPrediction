@@ -29,7 +29,7 @@ def predict_power():
     future_end = last_date + relativedelta(months=6)
     
     # Create future dataframe for monthly predictions
-    future_dates = pd.date_range(start=last_date + relativedelta(months=1),
+    future_dates = pd.date_range(start=last_date + relativedelta(months=6),
                                  end=future_end,
                                  freq='MS')  # 'MS' = Month Start
 
