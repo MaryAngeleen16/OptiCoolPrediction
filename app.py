@@ -6,7 +6,7 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route('/predictpower', methods=['POST'])
 def predict_power():
