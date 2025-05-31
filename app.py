@@ -5,24 +5,19 @@ from prophet import Prophet
 from dateutil.relativedelta import relativedelta
 import os
 
-
 app = Flask(__name__)
-CORS(app, origins=[
-    "http://localhost:3000",                    # for local React dev
-    "https://opticool.vercel.app"  # for deployed frontend
-])
 
-@app.after_request
-def add_cors_headers(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')  # Change '*' to your frontend URL in production
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-    return response
+# ✅ Proper CORS setup for development & production frontend
+CORS(app, resources={r"/*": {"origins": [
+    "http://localhost:3000",
+    "https://opticool.vercel.app"
+]}})
 
 @app.route('/predictpower', methods=['POST'])
 def predict_power():
     data = request.json
     df = pd.DataFrame(data)
+
     if df.shape[0] < 2:
         return jsonify([])
 
@@ -34,16 +29,21 @@ def predict_power():
 
     last_date = df['ds'].max()
     future_end = last_date + relativedelta(months=6)
-    future_dates = pd.date_range(start=last_date + relativedelta(months=1),
-                                 end=future_end, freq='MS')
+    future_dates = pd.date_range(
+        start=last_date + relativedelta(months=1),
+        end=future_end,
+        freq='MS'
+    )
     future_df = pd.DataFrame({'ds': future_dates})
     forecast = model.predict(future_df)
 
-    results = [{'timestamp': row['ds'].isoformat(), 'consumption': row['yhat']} for _, row in forecast.iterrows()]
+    results = [
+        {'timestamp': row['ds'].isoformat(), 'consumption': row['yhat']}
+        for _, row in forecast.iterrows()
+    ]
     return jsonify(results)
 
-
-
+# ✅ Required for Render deployment to expose external access
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
