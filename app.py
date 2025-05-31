@@ -40,4 +40,4 @@ def predict_power():
     return jsonify(predictions)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
