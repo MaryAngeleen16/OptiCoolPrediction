@@ -10,7 +10,8 @@ app = Flask(__name__)
 # ✅ Proper CORS setup for development & production frontend
 CORS(app, resources={r"/*": {"origins": [
     "http://localhost:3000",
-    "https://opticool.vercel.app"
+    "https://opticool.vercel.app",
+    "https://opticoolweb-backend.onrender.com"
 ]}})
 
 @app.route('/predictpower', methods=['POST'])
@@ -21,6 +22,7 @@ def predict_power():
     if df.shape[0] < 2:
         return jsonify([])
 
+    # Convert to naive datetime
     df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize(None)
     df = df.rename(columns={'timestamp': 'ds', 'consumption': 'y'})
 
@@ -29,12 +31,15 @@ def predict_power():
 
     last_date = df['ds'].max()
     future_end = last_date + relativedelta(months=6)
+
     future_dates = pd.date_range(
         start=last_date + relativedelta(months=1),
         end=future_end,
         freq='MS'
-    )
+    ).tz_localize(None)  # REMOVE timezone info if any
+
     future_df = pd.DataFrame({'ds': future_dates})
+
     forecast = model.predict(future_df)
 
     results = [
@@ -42,6 +47,7 @@ def predict_power():
         for _, row in forecast.iterrows()
     ]
     return jsonify(results)
+
 
 # ✅ Required for Render deployment to expose external access
 if __name__ == '__main__':
