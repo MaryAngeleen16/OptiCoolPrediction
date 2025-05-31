@@ -5,7 +5,10 @@ from prophet import Prophet
 from dateutil.relativedelta import relativedelta
 
 app = Flask(__name__)
-CORS(app)  # This alone can work well for CORS
+CORS(app, origins=[
+    "http://localhost:3000",                    # for local React dev
+    "https://opticoolweb-backend.onrender.com"  # for deployed frontend
+])
 
 @app.after_request
 def add_cors_headers(response):
