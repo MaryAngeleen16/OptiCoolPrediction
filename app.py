@@ -15,20 +15,21 @@ def predict_power():
     if df.shape[0] < 2:
         return jsonify([])
 
-    # Convert timestamp to ordinal
+    # Convert timestamp to datetime and ordinal
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df['timestamp_ordinal'] = df['timestamp'].map(datetime.toordinal)
 
-    # Train linear regression
+    # Train linear regression model
     model = LinearRegression()
     model.fit(df[['timestamp_ordinal']], df['consumption'])
 
-    # Generate monthly predictions up to July 2025
+    # Define prediction range: 6 months after last date in data
     last_date = df['timestamp'].max()
-    end_date = datetime(2025, 7, 1).replace(tzinfo=last_date.tzinfo)
+    end_date = last_date + relativedelta(months=6)
 
     predictions = []
     next_date = last_date + relativedelta(months=1)
+
     while next_date <= end_date:
         pred_value = model.predict([[next_date.toordinal()]])[0]
         predictions.append({
@@ -38,6 +39,7 @@ def predict_power():
         next_date += relativedelta(months=1)
 
     return jsonify(predictions)
+
 
 
 if __name__ == '__main__':
