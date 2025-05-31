@@ -22,24 +22,27 @@ def predict_power():
     if df.shape[0] < 2:
         return jsonify([])
 
-    # Convert to naive datetime
     df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize(None)
     df = df.rename(columns={'timestamp': 'ds', 'consumption': 'y'})
 
-    model = Prophet()
+    model = Prophet(changepoint_prior_scale=0.5,
+                    yearly_seasonality=False,
+                    weekly_seasonality=False,
+                    daily_seasonality=False)
+    model.add_seasonality(name='monthly', period=30.5, fourier_order=5)
+
     model.fit(df)
 
     last_date = df['ds'].max()
-    future_end = last_date + relativedelta(months=6)
+    future_end = last_date + relativedelta(months=3)  # forecast 3 months instead of 6
 
     future_dates = pd.date_range(
         start=last_date + relativedelta(months=1),
         end=future_end,
         freq='MS'
-    ).tz_localize(None)  # REMOVE timezone info if any
+    ).tz_localize(None)
 
     future_df = pd.DataFrame({'ds': future_dates})
-
     forecast = model.predict(future_df)
 
     results = [
@@ -49,7 +52,7 @@ def predict_power():
     return jsonify(results)
 
 
-# ✅ Required for Render deployment to expose external access
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
