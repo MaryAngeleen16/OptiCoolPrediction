@@ -25,7 +25,7 @@ def predict_power():
 
     # Generate monthly predictions up to July 2025
     last_date = df['timestamp'].max()
-    end_date = datetime(2025, 7, 1)
+    end_date = datetime(2025, 7, 1).replace(tzinfo=last_date.tzinfo)
 
     predictions = []
     next_date = last_date + relativedelta(months=1)
@@ -38,6 +38,7 @@ def predict_power():
         next_date += relativedelta(months=1)
 
     return jsonify(predictions)
+
 
 if __name__ == '__main__':
     app.run()
