@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 app = Flask(__name__)
 CORS(app, origins=[
     "http://localhost:3000",                    # for local React dev
-    "https://opticoolweb-backend.onrender.com"  # for deployed frontend
+    "https://opticool.vercel.app"  # for deployed frontend
 ])
 
 @app.after_request
