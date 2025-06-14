@@ -7,14 +7,14 @@ import os
 
 app = Flask(__name__)
 
-# ✅ CORS setup
+# ✅ Allow CORS from frontend domains
 CORS(app, resources={r"/*": {"origins": [
     "http://localhost:3000",
     "https://opticool.vercel.app",
     "https://opticoolweb-backend.onrender.com"
 ]}})
 
-# ====== Power Prediction Route ======
+# ---------- Forecasting Endpoint ----------
 @app.route('/predictpower', methods=['POST'])
 def predict_power():
     data = request.json
@@ -26,12 +26,13 @@ def predict_power():
     df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize(None)
     df = df.rename(columns={'timestamp': 'ds', 'consumption': 'y'})
 
-    model = Prophet(changepoint_prior_scale=0.5,
-                    yearly_seasonality=False,
-                    weekly_seasonality=False,
-                    daily_seasonality=False)
+    model = Prophet(
+        changepoint_prior_scale=0.5,
+        yearly_seasonality=False,
+        weekly_seasonality=False,
+        daily_seasonality=False
+    )
     model.add_seasonality(name='monthly', period=30.5, fourier_order=5)
-
     model.fit(df)
 
     last_date = df['ds'].max()
@@ -52,9 +53,7 @@ def predict_power():
     ]
     return jsonify(results)
 
-
-# ====== Device Control Routes ======
-
+# ---------- Device Control Endpoints ----------
 current_temp = 24
 devices = {
     "AC": False,
@@ -123,8 +122,7 @@ def turn_off_exhaust():
     print("[LOG] Exhaust turned OFF")
     return jsonify(success=True)
 
-
-# ====== Run App ======
+# ---------- Run the app ----------
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
